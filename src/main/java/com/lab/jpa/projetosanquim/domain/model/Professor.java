@@ -6,6 +6,8 @@ import lombok.*;
 import java.util.UUID;
 
 @Entity
+@Table(name = "professor")
+
 @Getter
 @Setter
 @NoArgsConstructor
