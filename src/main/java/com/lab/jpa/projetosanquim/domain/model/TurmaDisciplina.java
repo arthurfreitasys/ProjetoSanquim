@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-public class TurmaDisciplina {
+public class TurmaDisciplina { // representa uma disciplina sendo ministrada por um determinado professor para uma determinada turma
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
