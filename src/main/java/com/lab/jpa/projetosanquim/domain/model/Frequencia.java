@@ -5,11 +5,7 @@ import lombok.*;
 
 
 @Entity
-@Table(name = "frequencia", uniqueConstraints = {
-        @UniqueConstraint(
-                columnNames = {"aula_id", "aluno_id"}
-        )
-})
+@Table(name = "frequencia")
 @Getter
 @Setter
 @Builder
@@ -22,7 +18,7 @@ public class Frequencia {
     private Long id;
 
     @Column(name = "presente", nullable = false)
-    private boolean presente;
+    private Boolean presente;
 
     @JoinColumn(name = "aluno_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
