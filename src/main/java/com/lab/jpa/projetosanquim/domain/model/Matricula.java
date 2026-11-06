@@ -3,8 +3,6 @@ package com.lab.jpa.projetosanquim.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "matricula", uniqueConstraints = {
         @UniqueConstraint(
@@ -20,8 +18,8 @@ import java.util.UUID;
 public class Matricula {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "status", nullable = false)
     private Boolean status;

@@ -4,8 +4,6 @@ import com.lab.jpa.projetosanquim.domain.enums.Cargo;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "usuario")
 @Getter
@@ -16,8 +14,8 @@ import java.util.UUID;
 public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, name = "nome_usuario")
     private String nome;

@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 @Entity
 @Table(name = "nota", uniqueConstraints = {
@@ -20,8 +19,8 @@ import java.util.UUID;
 public class Nota {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "valor", nullable = false, precision = 4, scale = 2)
     private BigDecimal valor;

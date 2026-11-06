@@ -3,8 +3,6 @@ package com.lab.jpa.projetosanquim.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "turma")
 @Getter
@@ -15,8 +13,8 @@ import java.util.UUID;
 public class Turma {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "ano_letivo", nullable = false)
     private Integer anoLetivo;

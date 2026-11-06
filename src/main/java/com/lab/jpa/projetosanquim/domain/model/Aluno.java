@@ -3,8 +3,6 @@ package com.lab.jpa.projetosanquim.domain.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "aluno")
 @Getter
@@ -15,8 +13,8 @@ import java.util.UUID;
 public class Aluno{
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, unique = true, name = "ra")
     private String ra;
