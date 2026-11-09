@@ -17,14 +17,14 @@ public class TurmaDisciplina { // representa uma disciplina sendo ministrada por
     private Long id;
 
     @JoinColumn(name = "turma_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Turma turma;
 
     @JoinColumn(name = "disciplina_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Disciplina disciplina;
 
     @JoinColumn(name = "professor_id", nullable = false)
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private Professor professor;
 }
