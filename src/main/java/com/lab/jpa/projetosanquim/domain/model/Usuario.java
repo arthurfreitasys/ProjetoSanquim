@@ -1,6 +1,6 @@
 package com.lab.jpa.projetosanquim.domain.model;
 
-import com.lab.jpa.projetosanquim.domain.enums.Cargo;
+import com.lab.jpa.projetosanquim.domain.enums.TipoUsuario;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,7 +28,7 @@ public class Usuario {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "cargo", nullable = false)
-    private Cargo cargo;
+    private TipoUsuario tipoUsuario;
 
 
 }

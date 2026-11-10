@@ -1,6 +1,6 @@
 package com.lab.jpa.projetosanquim.domain.enums;
 
-public enum Cargo {
+public enum TipoUsuario {
     PROFESSOR,
     GESTOR,
     ALUNO
