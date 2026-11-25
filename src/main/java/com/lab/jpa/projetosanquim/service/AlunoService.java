@@ -61,8 +61,7 @@ public class AlunoService {
         Map<Long, Disciplina> disciplinas = obterDisciplinasMatriculadas(aluno);
         Map<Long, List<Nota>> notasPorDisciplina = new HashMap<>();
 
-        notaRepository.findAll().stream()
-                .filter(nota -> Objects.equals(nota.getAluno().getId(), aluno.getId()))
+        notaRepository.findAllByAlunoId(aluno.getId())
                 .forEach(nota -> {
                     Disciplina disciplina = nota.getAvaliacao().getTurmaDisciplina().getDisciplina();
                     disciplinas.put(disciplina.getId(), disciplina);
@@ -81,9 +80,7 @@ public class AlunoService {
     @Transactional(readOnly = true)
     public FrequenciaAlunoResponseDTO frequencia() {
         Aluno aluno = obterAlunoAutenticado();
-        List<Frequencia> frequencias = frequenciaRepository.findAll().stream()
-                .filter(item -> Objects.equals(item.getAluno().getId(), aluno.getId()))
-                .toList();
+        List<Frequencia> frequencias = frequenciaRepository.findAllByAlunoId(aluno.getId());
 
         long totalRegistros = frequencias.size();
         long totalPresencas = frequencias.stream()
@@ -120,9 +117,7 @@ public class AlunoService {
     public List<AulaResponseDTO> aulas() {
         Aluno aluno = obterAlunoAutenticado();
         Set<Long> turmas = obterTurmasAtivas(aluno);
-        List<Aula> planos = aulaRepository.findAll().stream()
-                .filter(aula -> turmas.contains(aula.getTurmaDisciplina().getTurma().getId()))
-                .filter(aula -> aula.getDescricao() != null || aula.getTopicos() != null)
+        List<Aula> planos = aulaRepository.findAulasPlanificadasPorTurmas(turmas).stream()
                 .sorted(Comparator.comparing(Aula::getData))
                 .toList();
         return aulaMapper.toResponseList(planos);
@@ -157,16 +152,13 @@ public class AlunoService {
     private Map<Long, Disciplina> obterDisciplinasMatriculadas(Aluno aluno) {
         Set<Long> turmas = obterTurmasAtivas(aluno);
         Map<Long, Disciplina> disciplinas = new HashMap<>();
-        turmaDisciplinaRepository.findAll().stream()
-                .filter(vinculo -> turmas.contains(vinculo.getTurma().getId()))
+        turmaDisciplinaRepository.findAllByTurmaIdIn(turmas)
                 .forEach(vinculo -> disciplinas.put(vinculo.getDisciplina().getId(), vinculo.getDisciplina()));
         return disciplinas;
     }
 
     private Set<Long> obterTurmasAtivas(Aluno aluno) {
-        return matriculaRepository.findAll().stream()
-                .filter(matricula -> Boolean.TRUE.equals(matricula.getStatus()))
-                .filter(matricula -> Objects.equals(matricula.getAluno().getId(), aluno.getId()))
+        return matriculaRepository.findAllByAlunoIdAndStatusTrue(aluno.getId()).stream()
                 .map(Matricula::getTurma)
                 .map(turma -> turma.getId())
                 .collect(java.util.stream.Collectors.toCollection(HashSet::new));
@@ -178,13 +170,9 @@ public class AlunoService {
             throw new RegraNegocioException("Usuário não autenticado");
         }
 
-        Usuario usuario = usuarioRepository.findOne(Example.of(
-                        Usuario.builder().email(authentication.getName()).build()
-                ))
+        Usuario usuario = usuarioRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário autenticado não encontrado"));
-        return alunoRepository.findAll().stream()
-                .filter(aluno -> Objects.equals(aluno.getUsuario().getId(), usuario.getId()))
-                .findFirst()
+        return alunoRepository.findByUsuarioId(usuario.getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado para o usuário autenticado"));
     }
 }

@@ -109,9 +109,7 @@ public class AdminService {
             throw new RegraNegocioException("Não é possível matricular em uma turma inativa");
         }
 
-        boolean matriculaExistente = matriculaRepository.findAll().stream()
-                .anyMatch(matricula -> Objects.equals(matricula.getAluno().getId(), aluno.getId())
-                        && Objects.equals(matricula.getTurma().getId(), turma.getId()));
+        boolean matriculaExistente = matriculaRepository.existsByAlunoIdAndTurmaId(aluno.getId(), turma.getId());
         if (matriculaExistente) {
             throw new RegraNegocioException("O aluno já possui matrícula nesta turma");
         }
@@ -132,9 +130,7 @@ public class AdminService {
     }
 
     private void validarEmailUnico(String email) {
-        boolean emailExistente = usuarioRepository.findAll().stream()
-                .anyMatch(usuario -> usuario.getEmail().equalsIgnoreCase(email));
-        if (emailExistente) {
+        if (usuarioRepository.existsByEmailIgnoreCase(email)) {
             throw new RegraNegocioException("Já existe um usuário cadastrado com este e-mail");
         }
     }
@@ -143,11 +139,7 @@ public class AdminService {
         String ra;
         do {
             ra = "RA-" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
-            String raCandidato = ra;
-            if (alunoRepository.findAll().stream().noneMatch(aluno -> raCandidato.equals(aluno.getRa()))) {
-                break;
-            }
-        } while (true);
+        } while (alunoRepository.existsByRa(ra));
         return ra;
     }
 }

@@ -78,15 +78,12 @@ public class DiarioService {
 
     @Transactional(readOnly = true)
     public List<TurmaDisciplinaResponseDTO> minhasTurmas() {
-        List<TurmaDisciplina> vinculos = turmaDisciplinaRepository.findAll();
         if (isGestao()) {
-            return turmaDisciplinaMapper.toResponseList(vinculos);
+            return turmaDisciplinaMapper.toResponseList(turmaDisciplinaRepository.findAll());
         }
 
         Long professorId = obterProfessorAutenticado().getId();
-        return turmaDisciplinaMapper.toResponseList(vinculos.stream()
-                .filter(vinculo -> Objects.equals(vinculo.getProfessor().getId(), professorId))
-                .toList());
+        return turmaDisciplinaMapper.toResponseList(turmaDisciplinaRepository.findAllByProfessorId(professorId));
     }
 
     @Transactional
@@ -101,15 +98,11 @@ public class DiarioService {
         disciplinaRepository.findById(request.disciplinaId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Disciplina não encontrada"));
 
-        List<Aula> aulasDaData = aulaRepository.findAll().stream()
-                .filter(aula -> Objects.equals(aula.getData(), request.dataAula()))
-                .filter(aula -> Objects.equals(aula.getTurmaDisciplina().getTurma().getId(), turma.getId())
-                        && Objects.equals(aula.getTurmaDisciplina().getDisciplina().getId(), request.disciplinaId()))
-                .toList();
+        List<Aula> aulasDaData = aulaRepository.findAllByDataAndTurmaDisciplinaTurmaIdAndTurmaDisciplinaDisciplinaId(
+                request.dataAula(), turma.getId(), request.disciplinaId());
         TurmaDisciplina vinculo = obterVinculoDaChamada(request.turmaId(), request.disciplinaId());
         Set<Long> aulasDaDataIds = aulasDaData.stream().map(Aula::getId).collect(java.util.stream.Collectors.toSet());
-        boolean chamadaDuplicada = frequenciaRepository.findAll().stream()
-                .anyMatch(frequencia -> aulasDaDataIds.contains(frequencia.getAula().getId()));
+        boolean chamadaDuplicada = frequenciaRepository.existsByAulaIdIn(aulasDaDataIds);
         if (chamadaDuplicada) {
             throw new RegraNegocioException("Já existe chamada para esta turma, disciplina e data");
         }
@@ -122,9 +115,7 @@ public class DiarioService {
             throw new RegraNegocioException("Já existe uma aula com outro vínculo para esta turma, disciplina e data");
         }
 
-        Set<Long> alunosMatriculados = matriculaRepository.findAll().stream()
-                .filter(matricula -> Boolean.TRUE.equals(matricula.getStatus()))
-                .filter(matricula -> Objects.equals(matricula.getTurma().getId(), turma.getId()))
+        Set<Long> alunosMatriculados = matriculaRepository.findAllByTurmaIdAndStatusTrue(turma.getId()).stream()
                 .map(matricula -> matricula.getAluno().getId())
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -198,11 +189,8 @@ public class DiarioService {
 
         Aluno aluno = alunoRepository.findById(request.alunoID())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Aluno não encontrado"));
-        boolean matriculado = matriculaRepository.findAll().stream()
-                .anyMatch(matricula -> Boolean.TRUE.equals(matricula.getStatus())
-                        && Objects.equals(matricula.getAluno().getId(), aluno.getId())
-                        && Objects.equals(matricula.getTurma().getId(),
-                        avaliacao.getTurmaDisciplina().getTurma().getId()));
+        boolean matriculado = matriculaRepository.existsByStatusTrueAndAlunoIdAndTurmaId(
+                aluno.getId(), avaliacao.getTurmaDisciplina().getTurma().getId());
         if (!matriculado) {
             throw new RegraNegocioException("O aluno não está matriculado na turma da avaliação");
         }
@@ -211,10 +199,7 @@ public class DiarioService {
             throw new RegraNegocioException("A nota deve estar entre zero e a nota máxima da avaliação");
         }
 
-        Nota nota = notaRepository.findAll().stream()
-                .filter(item -> Objects.equals(item.getAvaliacao().getId(), avaliacao.getId()))
-                .filter(item -> Objects.equals(item.getAluno().getId(), aluno.getId()))
-                .findFirst()
+        Nota nota = notaRepository.findByAvaliacaoIdAndAlunoId(avaliacao.getId(), aluno.getId())
                 .orElseGet(() -> {
                     Nota novaNota = notaMapper.toEntity(request);
                     novaNota.setAvaliacao(avaliacao);
@@ -233,9 +218,7 @@ public class DiarioService {
         TurmaDisciplina vinculo = obterVinculo(request.turmaDisciplinaID());
         validarVinculoProfessor(vinculo);
 
-        boolean planoDuplicado = aulaRepository.findAll().stream()
-                .anyMatch(aula -> Objects.equals(aula.getTurmaDisciplina().getId(), vinculo.getId())
-                        && Objects.equals(aula.getData(), request.data()));
+        boolean planoDuplicado = aulaRepository.existsByTurmaDisciplinaIdAndData(vinculo.getId(), request.data());
         if (planoDuplicado) {
             throw new RegraNegocioException("Já existe aula ou chamada nesta data para a turma e disciplina");
         }
@@ -246,15 +229,12 @@ public class DiarioService {
     }
 
     private TurmaDisciplina obterVinculoDaChamada(Long turmaId, Long disciplinaId) {
-        List<TurmaDisciplina> vinculos = turmaDisciplinaRepository.findAll().stream()
-                .filter(item -> Objects.equals(item.getTurma().getId(), turmaId))
-                .filter(item -> Objects.equals(item.getDisciplina().getId(), disciplinaId))
-                .toList();
-        if (!isGestao()) {
+        List<TurmaDisciplina> vinculos;
+        if (isGestao()) {
+            vinculos = turmaDisciplinaRepository.findAllByTurmaIdAndDisciplinaId(turmaId, disciplinaId);
+        } else {
             Long professorId = obterProfessorAutenticado().getId();
-            vinculos = vinculos.stream()
-                    .filter(item -> Objects.equals(item.getProfessor().getId(), professorId))
-                    .toList();
+            vinculos = turmaDisciplinaRepository.findAllByTurmaIdAndDisciplinaIdAndProfessorId(turmaId, disciplinaId, professorId);
         }
         if (vinculos.isEmpty()) {
             throw new RegraNegocioException("O professor não está vinculado a esta turma e disciplina");
@@ -282,11 +262,9 @@ public class DiarioService {
 
     private Professor obterProfessorAutenticado() {
         String email = obterEmailAutenticado();
-        Usuario usuario = usuarioRepository.findOne(Example.of(Usuario.builder().email(email).build()))
+        Usuario usuario = usuarioRepository.findByEmail(email)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Usuário autenticado não encontrado"));
-        return professorRepository.findAll().stream()
-                .filter(professor -> Objects.equals(professor.getUsuario().getId(), usuario.getId()))
-                .findFirst()
+        return professorRepository.findByUsuarioId(usuario.getId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Professor não encontrado para o usuário autenticado"));
     }
 
