@@ -118,9 +118,9 @@ As credenciais abaixo podem ser utilizadas para testar a API. Cada usuário poss
 
 | Perfil | E-mail | Senha |
 |---|---|---|
-| GESTAO | `admin@sanquim.br` | `12345678` |
-| PROFESSOR | `prof.mat@sanquim.br` | `12345678` |
-| ALUNO | `aluno1@sanquim.br` | `12345678` |
+| GESTAO | `admin@sanquim.br` | `123456` |
+| PROFESSOR | `prof.mat@sanquim.br` | `123456` |
+| ALUNO | `aluno1@sanquim.br` | `123456` |
 
 **Como utilizar:**
 
