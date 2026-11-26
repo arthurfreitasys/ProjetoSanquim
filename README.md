@@ -112,6 +112,25 @@ A API utiliza autenticação baseada em JWT. Para acessar endpoints protegidos, 
 | PROFESSOR | `/api/diario/**` | `ROLE_PROFESSOR` |
 | ALUNO | `/api/aluno/**` | `ROLE_ALUNO` |
 
+### Credenciais para testes
+
+As credenciais abaixo podem ser utilizadas para testar a API. Cada usuário possui um perfil com permissões específicas.
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| GESTAO | `admin@sanquim.br` | `12345678` |
+| PROFESSOR | `prof.mat@sanquim.br` | `12345678` |
+| ALUNO | `aluno1@sanquim.br` | `12345678` |
+
+**Como utilizar:**
+
+1. Acesse a rota `POST /api/auth/login`.
+2. Informe o e-mail e a senha do perfil desejado.
+3. Copie o token JWT retornado pela API.
+4. Utilize o token nas requisições que exigem autenticação, informando-o no campo `Authorization` como `Bearer {token}`.
+
+> **Observação:** Essas credenciais são destinadas exclusivamente ao ambiente de demonstração e testes do projeto.
+
 O perfil GESTAO também possui acesso às rotas do perfil PROFESSOR para supervisão do diário de classe.
 
 ### Swagger
